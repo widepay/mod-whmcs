@@ -2,7 +2,7 @@
 Módulo desenvolvido para integração entre o WHMCS e Wide Pay.  
 Com o modulo é possível gerar boletos para pagamento e liquidação automática pelo Wide Pay após o recebimento.
 
-#Instalação e Configuração
+# Instalação e Configuração
 O modulo de integração é constituído por 3 arquivos, encaminhe os arquivos para as respectivas pastas do sistema WHMCS.  
 modules/gateways/**callback/widepay.php**  
 modules/gateways/**widepay/WidePay.php**  
