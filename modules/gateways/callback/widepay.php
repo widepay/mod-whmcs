@@ -22,14 +22,14 @@ $widePay = $wp->api('recebimentos/cobrancas/notificacao', array(
 ));
 
 //Registrando notificação
-logTransaction($gatewayParams['name'], $_POST, '(Notificação Wide Pay) Status: ' . $widePay->transacao['status'] .' - Success:'. $widePay->success . ' Fatura: ' . $widePay->transacao['referencia']);
+logTransaction($gatewayParams['name'], $_POST, '(Notificação Wide Pay) Status: ' . $widePay->cobranca['status'] .' - Success:'. $widePay->success . ' Fatura: ' . $widePay->cobranca['referencia']);
 
 //Caso Sucesso
 if ($widePay->success) {
 
     //Pegando fatura no banco de dados
     $postData = array(
-        'invoiceid' => $widePay->transacao['referencia'],
+        'invoiceid' => $widePay->cobranca['referencia'],
     );
     $adminUsername = $gatewayParams['adminWHMCSLogin'];
     $results = localAPI('GetInvoice', $postData, $adminUsername);
@@ -37,22 +37,22 @@ if ($widePay->success) {
     //Verifica se a fatura já foi liquidada no sistema WHMCS
     if($results['status'] == 'Paid'){
         //Informando pelo log
-        logTransaction($gatewayParams['name'], $_POST, '(ERRO de Notificação Wide Pay) Esta fatura já foi liquidada no sistema: WHMCS. Fatura: ' . $widePay->transacao['referencia']);
+        logTransaction($gatewayParams['name'], $_POST, '(ERRO de Notificação Wide Pay) Esta fatura já foi liquidada no sistema: WHMCS. Fatura: ' . $widePay->cobranca['referencia']);
         //Finalizando verificação
         exit("Esta fatura já foi liquidada no sistema: WHMCS.");
     }
 
     //Caso a notificação for de baixa ou recebido.
-    if ($widePay->transacao['status'] == 'Recebido' || $widePay->transacao['status'] ==  "Baixado"){
+    if ($widePay->cobranca['status'] == 'Recebido' || $widePay->cobranca['status'] ==  "Baixado"){
 
         $addTransactionCommand                  = "addtransaction";
         $addTransactionValues['userid']         = $results['userid'];
-        $addTransactionValues['invoiceid']      = $widePay->transacao['referencia'];
+        $addTransactionValues['invoiceid']      = $widePay->cobranca['referencia'];
         $addTransactionValues['description']    = 'Notificação valor recebido WidePay';
-        $addTransactionValues['amountin']       = $widePay->transacao['valor'];
-        $addTransactionValues['fees']           = $widePay->transacao['tarifa'];
+        $addTransactionValues['amountin']       = $widePay->cobranca['valor'];
+        $addTransactionValues['fees']           = $widePay->cobranca['tarifa'];
         $addTransactionValues['paymentmethod']  = 'widepay';
-        $addTransactionValues['transid']        = $widePay->transacao['id'];
+        $addTransactionValues['transid']        = $widePay->cobranca['id'];
         $addTransactionValues['date']           = date('d/m/Y');
         $addtransresults = localAPI($addTransactionCommand, $addTransactionValues, $adminWHMCS );
 
@@ -67,7 +67,7 @@ if ($widePay->success) {
 
     }else{// O status não é de baixa ou valor recebido
         //Finalizando verificação
-        exit("A notificação do tipo: " .$widePay->transacao['status'] . ", não é suportada na plataforma WHMCS.");
+        exit("A notificação do tipo: " .$widePay->cobranca['status'] . ", não é suportada na plataforma WHMCS.");
     }
 } else { // Erro retornado do Wide Pay
     //Finalizando verificação
