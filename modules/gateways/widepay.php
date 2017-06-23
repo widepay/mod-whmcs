@@ -20,7 +20,7 @@ function widepay_MetaData()
 {
     return array(
         'DisplayName' => 'Wide Pay',
-        'APIVersion' => '1.1', // Use API Version 1.1
+        'APIVersion' => '1.1',
         'DisableLocalCredtCardInput' => true,
         'TokenisedStorage' => false,
     );
@@ -131,7 +131,7 @@ function widepay_link($params)
     $widepayWalletToken = $params['walletToken'];
     $widepayTax = $params['tax'];
     $widepayTaxType = (int)$params['taxType'];
-    $widepaPlusDateDue = $params['plusDateDue'];
+    $widepayPlusDateDue = $params['plusDateDue'];
     $widepayAllowWidePayEmail = $params['allowWidePayEmail'];
     $widepayFine = $params['fine'];
     $widepayInterest = $params['interest'];
@@ -235,8 +235,8 @@ function widepay_link($params)
     //+++++++++++++++++++++++++++++[Configuração de data de vencimento ]+++++++++++++++++++++++++++++++++
 
 
-    if ($widepaPlusDateDue == null || $widepaPlusDateDue == '') {
-        $widepaPlusDateDue = '0';
+    if ($widepayPlusDateDue == null || $widepayPlusDateDue == '') {
+        $widepayPlusDateDue = '0';
     }
 
     if ($invoiceDuedate < date('Y-m-d')) {
@@ -244,7 +244,7 @@ function widepay_link($params)
     }
 
     $invoiceDuedate = new DateTime($invoiceDuedate);
-    $invoiceDuedate->modify('+' . $widepaPlusDateDue . ' day');
+    $invoiceDuedate->modify('+' . $widepayPlusDateDue . ' day');
     $invoiceDuedate = $invoiceDuedate->format('Y-m-d');
 
     //+++++++++++++++++++++++++++++[Configuração Opção de envio de email Wide Pay ]+++++++++++++++++++++++++++++++++
