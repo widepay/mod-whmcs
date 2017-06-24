@@ -3,6 +3,7 @@
 /**
  * Dependencias
  */
+use WHMCS\Database\Capsule;
 require_once('../widepay/WidePay.php');
 require_once __DIR__ . '/../../../init.php';
 require_once __DIR__ . '/../../../includes/gatewayfunctions.php';
@@ -49,7 +50,7 @@ if ($widePay->success) {
         $addTransactionValues['userid']         = $results['userid'];
         $addTransactionValues['invoiceid']      = $widePay->cobranca['referencia'];
         $addTransactionValues['description']    = 'Notificação valor recebido WidePay';
-        $addTransactionValues['amountin']       = $widePay->cobranca['valor'];
+        $addTransactionValues['amountin']       = ($widePay->cobranca['status'] ==  "Baixado")? $widePay->cobranca['valor'] : $widePay->cobranca['recebido'] ;
         $addTransactionValues['fees']           = $widePay->cobranca['tarifa'];
         $addTransactionValues['paymentmethod']  = 'widepay';
         $addTransactionValues['transid']        = $widePay->cobranca['id'];
@@ -59,7 +60,31 @@ if ($widePay->success) {
         if($addtransresults['result'] == "error"){// Caso ocorra um erro ao adicionar recebimento
             //Finalizando verificação
             exit('Erro WHMCS -> ' . $addtransresults['message']);
-        }else{// Melhor caso! Atualizado com sucesso e sem erros!
+        }else{
+
+            // Iremos verificar se a fatura foi liquidada, quando é consedido desconto na configuração do Wide Pay e o valor pago é menor que a fatura, a mesma não é liquidada.
+            //Pegando fatura no banco de dados
+            $postData = array(
+                'invoiceid' => $widePay->cobranca['referencia'],
+            );
+            $adminUsername = $gatewayParams['adminWHMCSLogin'];
+            $results = localAPI('GetInvoice', $postData, $adminUsername);
+            //Verifica se a fatura foi liquidada no sistema WHMCS
+            if($results['status'] == 'Unpaid'){
+                //Pega a requisição
+                $widepayInvoice = Capsule::table('mod_widepay')
+                    ->where('invoice', $widePay->cobranca['referencia'])
+                    ->orderBy('id', 'desc')
+                    ->first();
+
+                if((float)$widePay->cobranca['valor'] >= (float)$widepayInvoice->total){
+                    $postData["invoiceid"] = (int)$widePay->cobranca['referencia'];
+                    $postData["status"]    = 'Paid';
+                    $postData["datepaid"] = ($widePay->cobranca['status'] ==  "Baixado")? date('Y-m-d') : $widePay->cobranca['recebimento'];
+                    $results = localAPI('updateinvoice', $postData, $adminWHMCS);
+                }
+            }
+
             //Finalizando verificação
             exit("Notificação recebida com sucesso no sistema WHMCS.");
         }

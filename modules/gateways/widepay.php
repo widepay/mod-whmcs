@@ -162,6 +162,7 @@ function widepay_link($params)
     //Itens WidePay
     $widepayItens = [];
 
+    $widepayTotal = 0; // Valor total fatura WidePay.
     $widepayTax = str_replace(',', '.', $widepayTax);
 
     //Formatação para calculo ou exibição na descrição
@@ -190,19 +191,23 @@ function widepay_link($params)
                 'descricao' => $description,
                 'valor' => $amount
             ];
+            $widepayTotal = $widepayTotal + $amount;
             $widepayItens[] = [
                 'descricao' => 'Referente a taxa adicional de ' . $widepayTaxReal . '%',
                 'valor' => round((((double)$widepayTaxDouble / 100) * $amount), 2)
             ];
+            $widepayTotal = $widepayTotal + round((((double)$widepayTaxDouble / 100) * $amount), 2);
         } elseif ($widepayTaxType == 2) {//Acrécimo valor Fixo
             $widepayItens[] = [
                 'descricao' => $description,
                 'valor' => $amount
             ];
+            $widepayTotal = $widepayTotal + $amount;
             $widepayItens[] = [
                 'descricao' => 'Referente a taxa adicional de R$' . $widepayTaxReal,
                 'valor' => ((double)$widepayTaxDouble),
             ];
+            $widepayTotal = $widepayTotal + ((double)$widepayTaxDouble);
         } elseif ($widepayTaxType == 3) {//Desconto em Porcentagem
             $widepayItens[] = [
                 'descricao' => 'Discriminação de desconto: ' . $widepayTaxReal . '%' . ' de R$' . $widepayAmountReal . ' = R$' . number_format((double)round((((double)$widepayTaxDouble / 100) * $amount), 2), 2, ',', ''),
@@ -212,6 +217,7 @@ function widepay_link($params)
                 'descricao' => $description,
                 'valor' => $amount - round((((double)$widepayTaxDouble / 100) * $amount), 2)
             ];
+            $widepayTotal = $widepayTotal + ($amount - round((((double)$widepayTaxDouble / 100) * $amount), 2));
         } elseif ($widepayTaxType == 4) {//Desconto valor Fixo
             $widepayItens[] = [
                 'descricao' => 'Discriminação de desconto: R$' . $widepayAmountReal . ' - R$' . $widepayTaxReal . ' = R$' . number_format(round(($amount - $widepayTaxDouble), 2), 2, ',', ''),
@@ -221,6 +227,7 @@ function widepay_link($params)
                 'descricao' => $description,
                 'valor' => round(($amount - $widepayTaxDouble), 2)
             ];
+            $widepayTotal = $widepayTotal + (round(($amount - $widepayTaxDouble), 2));
         }
     }
 
@@ -230,6 +237,7 @@ function widepay_link($params)
             'descricao' => $description,
             'valor' => $amount
         ];
+        $widepayTotal = $widepayTotal + $amount;
     }
 
     //+++++++++++++++++++++++++++++[Configuração de data de vencimento ]+++++++++++++++++++++++++++++++++
@@ -259,7 +267,7 @@ function widepay_link($params)
     //+++++++++++++++++++++++++++++[ Processo final para mostrar fatura ]+++++++++++++++++++++++++++++++++
 
     //Pega fatura no banco de dados caso já gerada anteriormente.
-    $widepayInvoice = widepay_getInvoice($invoiceId,$amount, $widepayFine,$widepayInterest);
+    $widepayInvoice = widepay_getInvoice($invoiceId,$widepayTotal, $widepayTaxType,$widepayFine,$widepayInterest);
 
     //Caso a fatura não tenha sido gerada anteriormente
     if($widepayInvoice == null){
@@ -294,13 +302,13 @@ function widepay_link($params)
         $dados = $wp->api('recebimentos/cobrancas/adicionar', $widepayData);
 
         //Verificando sucesso no retorno
-        if (!$dados->sucesso) {
+        if (!$dados->success) {
             logTransaction('Wide Pay', $dados->error, 'Erro Wide Pay');
             logTransaction('Wide Pay', $dados->errors, 'Erro Wide Pay');
             return '<div class="alert alert-danger" role="alert">Wide Pay: ' . $dados->error . '</div>';
         }
         //Caso sucesso, será enviada ao banco de dados
-        widepay_sendInvoice($invoiceId,$amount,$widepayFine,$widepayInterest,$invoiceDuedate,$dados->id);
+        widepay_sendInvoice($invoiceId,$widepayTotal,$widepayTaxType,$widepayFine,$widepayInterest,$invoiceDuedate,$dados->id);
         $link = $dados->link;
     }else{
         $link = 'https://widepay.com/' . $widepayInvoice->idtransaction;
@@ -318,11 +326,12 @@ function widepay_link($params)
  *
  * @param $invoice
  * @param $total
+ * @param $type
  * @param $fine
  * @param $interest
  * @return mixed
  */
-function widepay_getInvoice($invoice, $total, $fine, $interest){
+function widepay_getInvoice($invoice, $total, $type, $fine, $interest){
     //Cria o banco de dados caso não exista
     widepay_check();
     //Pega a requisição
@@ -331,6 +340,7 @@ function widepay_getInvoice($invoice, $total, $fine, $interest){
         ->where('total', $total)
         ->where('fine', $fine)
         ->where('interest', $interest)
+        ->where('type', $type)
         ->orderBy('id', 'desc')
         ->first();
 
@@ -343,13 +353,14 @@ function widepay_getInvoice($invoice, $total, $fine, $interest){
  * Função responsável por gravar fatura no banco de dados.
  * @param $invoice
  * @param $total
+ * @param $type
  * @param $fine
  * @param $interest
  * @param $dueDate
  * @param $idTransaction
  * @return mixed
  */
-function widepay_sendInvoice($invoice, $total, $fine, $interest, $dueDate, $idTransaction){
+function widepay_sendInvoice($invoice, $total, $type, $fine, $interest, $dueDate, $idTransaction){
     //Envia ao banco de dados
     $result = Capsule::table('mod_widepay')->insert(
         [
@@ -359,6 +370,7 @@ function widepay_sendInvoice($invoice, $total, $fine, $interest, $dueDate, $idTr
             'duedate' => $dueDate,
             'fine' => $fine,
             'interest' => $interest,
+            'type' => $type
         ]
     );
     return $result;
@@ -384,6 +396,7 @@ function widepay_check()
                     $table->increments('id');
                     $table->string('idtransaction');
                     $table->integer('invoice');
+                    $table->integer('type');
                     $table->date('duedate');
                     $table->decimal('total');
                     $table->decimal('fine');
