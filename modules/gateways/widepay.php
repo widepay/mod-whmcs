@@ -302,9 +302,9 @@ function widepay_link($params)
         $dados = $wp->api('recebimentos/cobrancas/adicionar', $widepayData);
 
         //Verificando sucesso no retorno
-        if (!$dados->success) {
-            logTransaction('Wide Pay', $dados->error, 'Erro Wide Pay');
-            logTransaction('Wide Pay', $dados->errors, 'Erro Wide Pay');
+        if (!$dados->sucesso) {
+            logTransaction('Wide Pay', $dados->erro, 'Erro Wide Pay');
+            logTransaction('Wide Pay', $dados->erros, 'Erro Wide Pay');
             return '<div class="alert alert-danger" role="alert">Wide Pay: ' . $dados->error . '</div>';
         }
         //Caso sucesso, será enviada ao banco de dados
