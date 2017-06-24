@@ -62,7 +62,7 @@ if ($widePay->success) {
             exit('Erro WHMCS -> ' . $addtransresults['message']);
         }else{
 
-            // Iremos verificar se a fatura foi liquidada, quando é consedido desconto na configuração do Wide Pay e o valor pago é menor que a fatura, a mesma não é liquidada.
+            //Iremos verificar se a fatura foi liquidada, quando é concedido desconto na configuração do Wide Pay e o valor pago é menor que a fatura, a mesma não é liquidada.
             //Pegando fatura no banco de dados
             $postData = array(
                 'invoiceid' => $widePay->cobranca['referencia'],
