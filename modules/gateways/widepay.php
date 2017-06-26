@@ -84,9 +84,9 @@ function widepay_config()
             'Type' => 'dropdown',
             'Options' => array(
                 '1' => 'Acrécimo em %',
-                '2' => 'Acrécimo valor fixo',
+                '2' => 'Acrécimo valor fixo em R$',
                 '3' => 'Desconto em %',
-                '4' => 'Desconto valor fixo',
+                '4' => 'Desconto valor fixo em R$',
             ),
             'Description' => '<br>A Taxa de Variação será aplicada de acordo com este campo.',
         ),
@@ -126,7 +126,7 @@ function widepay_config()
             'Description' => 'Configuração em porcentagem. Exemplo: 2',
         ),
 
-        // Configuração do campo 'Login Admin WHMCS'
+        // Configuração do campo 'Campo referente ao CPF e CNPJ'
         'cpfCnpj' => array(
             'FriendlyName' => 'Campo referente ao CPF e CNPJ',
             'Type' => 'text',
