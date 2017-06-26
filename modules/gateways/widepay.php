@@ -5,6 +5,7 @@
  * Dependencias
  */
 use WHMCS\Database\Capsule;
+
 require_once('widepay/WidePay.php');
 
 
@@ -32,6 +33,19 @@ function widepay_MetaData()
  */
 function widepay_config()
 {
+    $widepayCustomFields = widepay_getCustomFields();
+    $widepayCustomFieldsHelp = '';
+
+    if(count($widepayCustomFields) > 0){
+        $widepayCustomFieldsHelp .= 'Criamos uma lista com os campos personalizados disponíveis em seu sistema, preencha o campo com o ID referente ao CPF e CNPJ do sistema:<br><ul>';
+        foreach ($widepayCustomFields as $widepayCustomField){
+            $widepayCustomFieldsHelp .= '<li>ID do campo: <strong>'.$widepayCustomField->id . '</strong> - ' .$widepayCustomField->fieldname .'</li>';
+        }
+        $widepayCustomFieldsHelp .= '</ul>';
+    }else{
+        $widepayCustomFieldsHelp .= '<strong>Opa. Parece que não há campos personalizados em seu sistema. Saiba como configurar <a href="#">clicando aqui</a>.</strong>';
+    }
+
     return array(
         // Nome do Gateway Plugin
         'FriendlyName' => array(
@@ -61,7 +75,7 @@ function widepay_config()
             'FriendlyName' => 'Taxa de Variação',
             'Type' => 'text',
             'Size' => '10',
-            'Description' => '<br>O valor final da fatura será alterado de acordo com este campo.<br>Coloque 0 para não alterar.',
+            'Description' => '<br>O valor final da fatura será recalculado de acordo com este campo.<br>Coloque 0 para não alterar.',
         ),
 
         // Configuração do campo 'Tipo da Taxa de Variação'
@@ -100,7 +114,7 @@ function widepay_config()
             'Type' => 'text',
             'Size' => '10',
             'Default' => '',
-            'Description' => 'Configuração em porcentagem.Exemplo: 0,5',
+            'Description' => 'Configuração em porcentagem. Exemplo: 2',
         ),
 
         // Configuração do campo 'Configuração de Juros'
@@ -109,7 +123,15 @@ function widepay_config()
             'Type' => 'text',
             'Size' => '10',
             'Default' => '',
-            'Description' => 'Configuração em porcentagem.Exemplo: 0,5',
+            'Description' => 'Configuração em porcentagem. Exemplo: 2',
+        ),
+
+        // Configuração do campo 'Login Admin WHMCS'
+        'cpfCnpj' => array(
+            'FriendlyName' => 'Campo referente ao CPF e CNPJ',
+            'Type' => 'text',
+            'Size' => '40',
+            'Description' => 'Reservado para campo personalizado do sistema WHMCS referente ao CPF e CNPJ.<br>'. $widepayCustomFieldsHelp,
         ),
 
         // Configuração do campo 'Login Admin WHMCS'
@@ -133,17 +155,23 @@ function widepay_link($params)
     $widepayTaxType = (int)$params['taxType'];
     $widepayPlusDateDue = $params['plusDateDue'];
     $widepayAllowWidePayEmail = $params['allowWidePayEmail'];
-    $widepayFine = $params['fine'];
-    $widepayInterest = $params['interest'];
+    $widepayFine = (double) $params['fine'];
+    $widepayInterest = (double) $params['interest'];
+    $widepayCpfCnpjFieldId = $params['cpfCnpj'];
+    $widepayCpfCnpj = ''; //Será populado mais abaixo.
+    $widepayCpf = ''; //Será populado mais abaixo.
+    $widepayCnpj = ''; //Será populado mais abaixo.
+    $widepayPessoa = 'Física'; //Será populado mais abaixo.
 
     // Parâmetros da Fatura
     $invoiceId = $params['invoiceid'];
     $invoiceDuedate = $params['dueDate'];
     $description = $params["description"];
-    $amount = round((double)$params['amount'],2);
-    $credit = round((double)$params['credit'],2);
+    $amount = round((double)$params['amount'], 2);
+    $credit = round((double)$params['credit'], 2);
 
     // Parâmetros do Cliente
+    $userid = $params['clientdetails']['userid'];
     $firstname = $params['clientdetails']['firstname'];
     $lastname = $params['clientdetails']['lastname'];
     $email = $params['clientdetails']['email'];
@@ -171,8 +199,7 @@ function widepay_link($params)
 
     $widepayCreditReal = number_format((double)$credit, 2, ',', '');
 
-    var_dump($params);
-    exit();
+
     //Caso houver crédito na fatura será descontado do valor total e o valor total será atualizado
     if ($credit > 0) {
         $widepayItens[] = [
@@ -218,7 +245,7 @@ function widepay_link($params)
             ];
             $widepayItens[] = [
                 'descricao' => 'Item referente ao desconto: ' . $widepayTaxReal . '%',
-                'valor' => round((((double)$widepayTaxDouble / 100) * $amount), 2)*(-1)
+                'valor' => round((((double)$widepayTaxDouble / 100) * $amount), 2) * (-1)
             ];
             $widepayTotal = $widepayTotal + ($amount - round((((double)$widepayTaxDouble / 100) * $amount), 2));
         } elseif ($widepayTaxType == 4) {//Desconto valor Fixo
@@ -261,19 +288,33 @@ function widepay_link($params)
     //+++++++++++++++++++++++++++++[Configuração Opção de envio de email Wide Pay ]+++++++++++++++++++++++++++++++++
 
 
-    if($widepayAllowWidePayEmail){
+    if ($widepayAllowWidePayEmail) {
         $widepayAllowWidePayEmail = 'E-mail';
-    }else{
+    } else {
         $widepayAllowWidePayEmail = '';
     }
+
+    //+++++++++++++++++++++++++++++[Configuração Opção de CPF e CNPJ para Wide Pay ]+++++++++++++++++++++++++++++++++
+
+    $widepayCpfCnpj = widepay_getCpfCnpj($userid,$widepayCpfCnpjFieldId);
+
+    if (!is_null($widepayCpfCnpj)) {
+        if(strlen($widepayCpfCnpj) > 11){
+            $widepayCnpj = $widepayCpfCnpj;
+            $widepayPessoa = 'Jurídica';
+        }else{
+            $widepayCpf = $widepayCpfCnpj;
+        }
+    }
+
 
     //+++++++++++++++++++++++++++++[ Processo final para mostrar fatura ]+++++++++++++++++++++++++++++++++
 
     //Pega fatura no banco de dados caso já gerada anteriormente.
-    $widepayInvoice = widepay_getInvoice($invoiceId,$widepayTotal, $widepayTaxType,$widepayFine,$widepayInterest);
+    $widepayInvoice = widepay_getInvoice($invoiceId, $widepayTotal, $widepayTaxType, $widepayFine, $widepayInterest);
 
     //Caso a fatura não tenha sido gerada anteriormente
-    if($widepayInvoice == null){
+    if ($widepayInvoice == null) {
 
         $wp = new WidePay($widepayWalletNumber, $widepayWalletToken);
         $widepayData = array(
@@ -284,6 +325,9 @@ function widepay_link($params)
             'cliente' => $firstname . ' ' . $lastname,
             'email' => $email,
             'enviar' => $widepayAllowWidePayEmail,
+            'pessoa' => $widepayPessoa,
+            'cpf' => $widepayCpf,
+            'cnpj' => $widepayCnpj,
 
             'endereco' => array(
                 'rua' => $address1,
@@ -306,14 +350,24 @@ function widepay_link($params)
 
         //Verificando sucesso no retorno
         if (!$dados->sucesso) {
-            logTransaction('Wide Pay', $dados->erro, 'Erro Wide Pay');
-            logTransaction('Wide Pay', $dados->erros, 'Erro Wide Pay');
-            return '<div class="alert alert-danger" role="alert">Wide Pay: ' . $dados->error . '</div>';
+            var_dump($dados);
+            $validacao = '';
+            if($dados->validacao){
+                logTransaction('Wide Pay', $dados->validacao, 'Erro Wide Pay');
+                foreach ($dados->validacao as $item){
+                    $validacao .= '- ' . $item['erro'] . '<br>';
+                }
+            }
+            if($dados->erro)
+                logTransaction('Wide Pay', $dados->erro, 'Erro Wide Pay');
+
+
+            return '<div class="alert alert-danger" role="alert">Wide Pay: ' . $dados->error . '<br>'. $validacao .'</div>';
         }
         //Caso sucesso, será enviada ao banco de dados
-        widepay_sendInvoice($invoiceId,$widepayTotal,$widepayTaxType,$widepayFine,$widepayInterest,$invoiceDuedate,$dados->id);
+        widepay_sendInvoice($invoiceId, $widepayTotal, $widepayTaxType, $widepayFine, $widepayInterest, $invoiceDuedate, $dados->id);
         $link = $dados->link;
-    }else{
+    } else {
         $link = 'https://widepay.com/' . $widepayInvoice->idtransaction;
     }
     //Exibindo link para pagamento
@@ -334,7 +388,8 @@ function widepay_link($params)
  * @param $interest
  * @return mixed
  */
-function widepay_getInvoice($invoice, $total, $type, $fine, $interest){
+function widepay_getInvoice($invoice, $total, $type, $fine, $interest)
+{
     //Cria o banco de dados caso não exista
     widepay_check();
     //Pega a requisição
@@ -363,7 +418,8 @@ function widepay_getInvoice($invoice, $total, $type, $fine, $interest){
  * @param $idTransaction
  * @return mixed
  */
-function widepay_sendInvoice($invoice, $total, $type, $fine, $interest, $dueDate, $idTransaction){
+function widepay_sendInvoice($invoice, $total, $type, $fine, $interest, $dueDate, $idTransaction)
+{
     //Envia ao banco de dados
     $result = Capsule::table('mod_widepay')->insert(
         [
@@ -413,4 +469,27 @@ function widepay_check()
     }
 
 
+}
+
+
+function widepay_getCustomFields()
+{
+    $widepayCustomFields = Capsule::table('tblcustomfields')
+        ->orderBy('id', 'asc')
+        ->get();
+    return $widepayCustomFields;
+}
+
+function widepay_getCpfCnpj($custumer,$fieldId)
+{
+    $widepayCustomField = Capsule::table('tblcustomfieldsvalues')
+        ->where('fieldid',$fieldId)
+        ->where('relid',$custumer)
+        ->orderBy('id', 'desc')
+        ->first();
+    if($widepayCustomField){
+        return preg_replace('/\D/', '', $widepayCustomField->value);
+    }else{
+        return null;
+    }
 }
