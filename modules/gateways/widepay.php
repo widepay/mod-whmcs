@@ -140,8 +140,8 @@ function widepay_link($params)
     $invoiceId = $params['invoiceid'];
     $invoiceDuedate = $params['dueDate'];
     $description = $params["description"];
-    $amount = (double)$params['amount'];
-    $credit = (double)$params['credit'];
+    $amount = round((double)$params['amount'],2);
+    $credit = round((double)$params['credit'],2);
 
     // Parâmetros do Cliente
     $firstname = $params['clientdetails']['firstname'];
@@ -168,18 +168,21 @@ function widepay_link($params)
     //Formatação para calculo ou exibição na descrição
     $widepayTaxDouble = number_format((double)$widepayTax, 2, '.', '');
     $widepayTaxReal = number_format((double)$widepayTax, 2, ',', '');
-    $widepayAmountReal = number_format((double)$amount, 2, ',', '');
+
     $widepayCreditReal = number_format((double)$credit, 2, ',', '');
 
+    var_dump($params);
+    exit();
     //Caso houver crédito na fatura será descontado do valor total e o valor total será atualizado
     if ($credit > 0) {
         $widepayItens[] = [
-            'descricao' => 'Discriminação de crédito: R$' . $widepayAmountReal . ' - R$' . $widepayCreditReal . ' = R$' . number_format(round(($amount - $credit), 2), 2, ',', ''),
-            'valor' => 0,
+            'descricao' => 'Item referente ao crédito da fatura: R$' . $widepayCreditReal,
+            'valor' => $credit * (-1)
         ];
+
         // !!!! Caso houver crédito estamos alterando o valor total
-        $widepayAmountReal = number_format((double)$amount - $credit, 2, ',', '');
         $amount = $amount - $credit;
+        $widepayTotal = $widepayTotal - $credit;
     }
 
 
@@ -210,22 +213,22 @@ function widepay_link($params)
             $widepayTotal = $widepayTotal + ((double)$widepayTaxDouble);
         } elseif ($widepayTaxType == 3) {//Desconto em Porcentagem
             $widepayItens[] = [
-                'descricao' => 'Discriminação de desconto: ' . $widepayTaxReal . '%' . ' de R$' . $widepayAmountReal . ' = R$' . number_format((double)round((((double)$widepayTaxDouble / 100) * $amount), 2), 2, ',', ''),
-                'valor' => 0
+                'descricao' => $description,
+                'valor' => $amount
             ];
             $widepayItens[] = [
-                'descricao' => $description,
-                'valor' => $amount - round((((double)$widepayTaxDouble / 100) * $amount), 2)
+                'descricao' => 'Item referente ao desconto: ' . $widepayTaxReal . '%',
+                'valor' => round((((double)$widepayTaxDouble / 100) * $amount), 2)*(-1)
             ];
             $widepayTotal = $widepayTotal + ($amount - round((((double)$widepayTaxDouble / 100) * $amount), 2));
         } elseif ($widepayTaxType == 4) {//Desconto valor Fixo
             $widepayItens[] = [
-                'descricao' => 'Discriminação de desconto: R$' . $widepayAmountReal . ' - R$' . $widepayTaxReal . ' = R$' . number_format(round(($amount - $widepayTaxDouble), 2), 2, ',', ''),
-                'valor' => 0
+                'descricao' => $description,
+                'valor' => $amount
             ];
             $widepayItens[] = [
-                'descricao' => $description,
-                'valor' => round(($amount - $widepayTaxDouble), 2)
+                'descricao' => 'Item referente ao desconto: R$' . $widepayTaxReal,
+                'valor' => $widepayTaxDouble * (-1)
             ];
             $widepayTotal = $widepayTotal + (round(($amount - $widepayTaxDouble), 2));
         }
