@@ -345,7 +345,6 @@ function widepay_link($params)
         );
         // Enviando solicitação ao Wide Pay
         $dados = $wp->api('recebimentos/cobrancas/adicionar', $widepayData);
-
         //Verificando sucesso no retorno
         if (!$dados->sucesso) {
             $validacao = '';

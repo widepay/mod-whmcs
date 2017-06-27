@@ -24,7 +24,6 @@ $widePay = $wp->api('recebimentos/cobrancas/notificacao', array(
 
 //Registrando notificação
 logTransaction($gatewayParams['name'], $_POST, '(Notificação Wide Pay) Status: ' . $widePay->cobranca['status'] .' - Success:'. $widePay->success . ' Fatura: ' . $widePay->cobranca['referencia']);
-
 //Caso Sucesso
 if ($widePay->sucesso) {
 

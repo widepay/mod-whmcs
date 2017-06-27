@@ -1,4 +1,5 @@
 <?php
+
 class WidePay {
     private $autenticacao = array();
     public $requisicoes = array();

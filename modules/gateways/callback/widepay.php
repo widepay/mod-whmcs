@@ -27,7 +27,6 @@ logTransaction($gatewayParams['name'], $_POST, '(Notificação Wide Pay) Status:
 
 //Caso Sucesso
 if ($widePay->sucesso) {
-
     //Pegando fatura no banco de dados
     $postData = array(
         'invoiceid' => $widePay->cobranca['referencia'],
