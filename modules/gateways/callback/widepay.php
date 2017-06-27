@@ -3,7 +3,6 @@
 /**
  * Dependencias
  */
-use WHMCS\Database\Capsule;
 require_once('../widepay/WidePay.php');
 require_once __DIR__ . '/../../../init.php';
 require_once __DIR__ . '/../../../includes/gatewayfunctions.php';
@@ -55,7 +54,7 @@ if ($widePay->sucesso) {
         $addTransactionValues['paymentmethod']  = 'widepay';
         $addTransactionValues['transid']        = $widePay->cobranca['id'];
         $addTransactionValues['date']           = date('d/m/Y');
-        $addtransresults = localAPI($addTransactionCommand, $addTransactionValues, $adminWHMCS );
+        $addtransresults = localAPI($addTransactionCommand, $addTransactionValues, $adminUsername );
 
         if($addtransresults['result'] == "error"){// Caso ocorra um erro ao adicionar recebimento
             //Finalizando verificação
@@ -67,7 +66,6 @@ if ($widePay->sucesso) {
             $postData = array(
                 'invoiceid' => $widePay->cobranca['referencia'],
             );
-            $adminUsername = $gatewayParams['adminWHMCSLogin'];
             $results = localAPI('GetInvoice', $postData, $adminUsername);
             //Verifica se a fatura foi liquidada no sistema WHMCS
             if($results['status'] == 'Unpaid'){
@@ -81,7 +79,7 @@ if ($widePay->sucesso) {
                     $postData["invoiceid"] = (int)$widePay->cobranca['referencia'];
                     $postData["status"]    = 'Paid';
                     $postData["datepaid"] = ($widePay->cobranca['status'] ==  "Baixado")? date('Y-m-d') : $widePay->cobranca['recebimento'];
-                    $results = localAPI('updateinvoice', $postData, $adminWHMCS);
+                    $results = localAPI('updateinvoice', $postData, $adminUsername);
                 }
             }
 

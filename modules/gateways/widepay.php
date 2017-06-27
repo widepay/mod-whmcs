@@ -350,7 +350,6 @@ function widepay_link($params)
 
         //Verificando sucesso no retorno
         if (!$dados->sucesso) {
-            var_dump($dados);
             $validacao = '';
             if($dados->validacao){
                 logTransaction('Wide Pay', $dados->validacao, 'Erro Wide Pay');
