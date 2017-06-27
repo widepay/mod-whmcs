@@ -484,7 +484,6 @@ function widepay_getCpfCnpj($custumer,$fieldId)
     $widepayCustomField = Capsule::table('tblcustomfieldsvalues')
         ->where('fieldid',$fieldId)
         ->where('relid',$custumer)
-        ->orderBy('id', 'desc')
         ->first();
     if($widepayCustomField){
         return preg_replace('/\D/', '', $widepayCustomField->value);

@@ -3,6 +3,7 @@
 /**
  * Dependencias
  */
+use WHMCS\Database\Capsule;
 require_once('../widepay/WidePay.php');
 require_once __DIR__ . '/../../../init.php';
 require_once __DIR__ . '/../../../includes/gatewayfunctions.php';
