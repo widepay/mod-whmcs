@@ -361,7 +361,7 @@ function widepay_link($params)
                 logTransaction('Wide Pay', $dados->erro, 'Erro Wide Pay');
 
 
-            return '<div class="alert alert-danger" role="alert">Wide Pay: ' . $dados->error . '<br>'. $validacao .'</div>';
+            return '<div class="alert alert-danger" role="alert">Wide Pay: ' . $dados->erro . '<br>'. $validacao .'</div>';
         }
         //Caso sucesso, será enviada ao banco de dados
         widepay_sendInvoice($invoiceId, $widepayTotal, $widepayTaxType, $widepayFine, $widepayInterest, $invoiceDuedate, $dados->id);
