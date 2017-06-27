@@ -70,11 +70,10 @@ if ($widePay->sucesso) {
             $results = localAPI('GetInvoice', $postData, $adminUsername);
             //Verifica se a fatura foi liquidada no sistema WHMCS
             if($results['status'] == 'Unpaid'){
-
                 if(
-                ((float)$widePay->cobranca['valor'] >= (float)$widepayInvoice->total) ||
-                $widePay->cobranca['status'] == 'Baixado')
-                {
+                ((float)$widePay->cobranca['recebido'] >= (float)$widePay->cobranca['valor']) ||
+                $widePay->cobranca['status'] == 'Baixado'
+                ){
                     $postData["invoiceid"] = (int)$widePay->cobranca['referencia'];
                     $postData["status"]    = 'Paid';
                     $postData["datepaid"] = ($widePay->cobranca['status'] ==  "Baixado")? date('Y-m-d') : $widePay->cobranca['recebimento'];
@@ -95,5 +94,4 @@ if ($widePay->sucesso) {
     //Finalizando verificação
     exit('ERRO!<br><br>' . $widePay->erro);
 }
-
 
