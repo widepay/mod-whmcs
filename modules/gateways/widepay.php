@@ -43,7 +43,7 @@ function widepay_config()
         }
         $widepayCustomFieldsHelp .= '</ul>';
     }else{
-        $widepayCustomFieldsHelp .= '<strong>Opa. Parece que não há campos personalizados em seu sistema. Saiba como configurar <a href="https://github.com/widepay/mod-whmcs#configuração-do-campo-personalizado-cpfcnpj">clicando aqui</a>.</strong>';
+        $widepayCustomFieldsHelp .= '<strong>Opa. Parece que não há campos personalizados em seu sistema. Saiba como configurar <a href="https://github.com/widepay/mod-whmcs#configuração-do-campo-personalizado-cpfcnpj" target="_blank">clicando aqui</a>.</strong>';
     }
 
     return array(
