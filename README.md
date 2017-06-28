@@ -1,7 +1,10 @@
-#  Módulo WHMCS 
+#  Módulo WHMCS para Wide Pay
 Módulo desenvolvido para integração entre o WHMCS e Wide Pay. Com o módulo é possível gerar boletos para pagamento e liquidação automática pelo Wide Pay após o recebimento.
 
-## Instalação Plugin
+* **Versão atual:** pre-release
+* **Versão WHMCS compatível:** Versão mínima 6 (Clique aqui para versões inferiores)
+
+# Instalação Plugin
 Para a instalação do plugin realize o download pelo link: https://github.com/widepay/mod-whmcs
 
 Após o download concluído haverá 3 arquivos para serem enviados ao sistema.
@@ -12,14 +15,14 @@ Após o download concluído haverá 3 arquivos para serem enviados ao sistema.
 
 Você pode mesclar a pasta modules com o seu sistema, assim os arquivos serão enviados aos locais corretos.
 
-## Ativar Plugin
+# Ativar Plugin
 
 Para ativar o Wide Pay clique no botão:
 
 * Inglês: Setup -> Payments -> Payment Gateways -> All Payment Gateways -> "Wide Pay".
 * Portugues: Opções -> Pagamentos -> Portais para Pagamento-> All Payment Gateways -> "Wide Pay".
 
-## Configuração do Plugin
+# Configuração do Plugin
 
 Para acessar o menu de configuração do Wide Pay clique no botão:
 
@@ -41,11 +44,11 @@ Para configuração do Wide Pay é preciso que pelo menos os 3 campos obrigatór
 |Campo referente ao CPF e CNPJ|Não|Preencha com o ID do campo personalizado para evitar que o cliente digite todas às vezes ao gerar o boleto na página Wide Pay.|
 |Login Admin WHMCS|Sim|Cobrança criada, e está aguardando pagamento|
 
-## Configuração do Campo Personalizado CPF/CNPJ
+# Configuração do Campo Personalizado CPF/CNPJ
 
 Configurando o campo personalizado CPF e CNPJ evitamos que o cliente preencha toda vez na página Wide Pay esta informação. Ela é obrigatória para gerar o boleto ao cliente embora o campo não seja obrigatório nas configurações do plugin.
 
-### Criando Campo Personalizado CPF/CNPJ
+## Criando Campo Personalizado CPF/CNPJ
 
 Caso não possua o campo em seu sistema é preciso adicioná-lo. Para isto acesse o menu:
 
