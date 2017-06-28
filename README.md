@@ -3,6 +3,9 @@ Módulo desenvolvido para integração entre o WHMCS e Wide Pay. Com o módulo �
 
 * **Versão atual:** Pre-release
 * **Versão WHMCS compatível:** Mínima 6 [(Clique aqui para versões anteriores)](https://github.com/widepay/mod-whmcs-5)
+* **Acesso Wide Pay**: [Abrir Link](https://www.widepay.com/acessar)
+* **API Wide Pay**: [Abrir Link](https://widepay.github.io/api/index.html)
+* **Módulos Wide Pay**: [Abrir Link](https://widepay.github.io/api/modulos.html)
 
 # Instalação Plugin
 Para a instalação do plugin realize o download pelo link: https://github.com/widepay/mod-whmcs
