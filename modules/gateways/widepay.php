@@ -367,7 +367,7 @@ function widepay_link($params)
         widepay_sendInvoice($invoiceId, $widepayTotal, $widepayTaxType, $widepayFine, $widepayInterest, $invoiceDuedate, $dados->id);
         $link = $dados->link;
     } else {
-        $link = 'https://widepay.com/' . $widepayInvoice->idtransaction;
+        $link = 'https://widepay.com/' . $widepayWalletNumber . '-' . $widepayInvoice->idtransaction;
     }
     //Exibindo link para pagamento
     echo "<script>window.location = '$link';</script>";
