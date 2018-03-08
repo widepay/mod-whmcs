@@ -91,15 +91,6 @@ function widepay_config()
             'Description' => '<br>A Taxa de Variação será aplicada de acordo com este campo.',
         ),
 
-        // Configuração do campo 'Acréscimo de Dias no Vencimento'
-        'plusDateDue' => array(
-            'FriendlyName' => 'Acréscimo de Dias no Vencimento',
-            'Type' => 'text',
-            'Size' => '10',
-            'Default' => '2',
-            'Description' => '<br>Configure aqui a quantidade de dias corridos para o vencimento após a geração da fatura.',
-        ),
-
         // Configuração do campo 'Permitir que Wide Pay envie e-mail para Clientes Finais'
         'allowWidePayEmail' => array(
             'FriendlyName' => 'Permitir que Wide Pay envie e-mails',
@@ -153,7 +144,6 @@ function widepay_link($params)
     $widepayWalletToken = $params['walletToken'];
     $widepayTax = $params['tax'];
     $widepayTaxType = (int)$params['taxType'];
-    $widepayPlusDateDue = $params['plusDateDue'];
     $widepayAllowWidePayEmail = $params['allowWidePayEmail'];
     $widepayFine = (double) $params['fine'];
     $widepayInterest = (double) $params['interest'];
@@ -270,20 +260,7 @@ function widepay_link($params)
         $widepayTotal = $widepayTotal + $amount;
     }
 
-    //+++++++++++++++++++++++++++++[Configuração de data de vencimento ]+++++++++++++++++++++++++++++++++
 
-
-    if ($widepayPlusDateDue == null || $widepayPlusDateDue == '') {
-        $widepayPlusDateDue = '0';
-    }
-
-    if ($invoiceDuedate < date('Y-m-d')) {
-        $invoiceDuedate = date('Y-m-d');
-    }
-
-    $invoiceDuedate = new DateTime($invoiceDuedate);
-    $invoiceDuedate->modify('+' . $widepayPlusDateDue . ' day');
-    $invoiceDuedate = $invoiceDuedate->format('Y-m-d');
 
     //+++++++++++++++++++++++++++++[Configuração Opção de envio de email Wide Pay ]+++++++++++++++++++++++++++++++++
 
