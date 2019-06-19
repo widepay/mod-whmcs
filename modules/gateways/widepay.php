@@ -21,7 +21,7 @@ function widepay_MetaData()
 {
     return array(
         'DisplayName' => 'Wide Pay',
-        'APIVersion' => '1.1',
+        'APIVersion' => '1.2',
         'DisableLocalCredtCardInput' => true,
         'TokenisedStorage' => false,
     );
@@ -295,7 +295,7 @@ function widepay_link($params)
 
         $wp = new WidePay($widepayWalletNumber, $widepayWalletToken);
         $widepayData = array(
-            'forma' => 'Boleto',
+            'forma' => 'Cartão,Boleto',
             'referencia' => $invoiceId,
             'notificacao' => $systemUrl . '/modules/gateways/callback/' . $moduleName . '.php',
             'vencimento' => $invoiceDuedate,
