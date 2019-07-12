@@ -155,7 +155,7 @@ function widepay_link($params)
 
     // Parâmetros da Fatura
     $invoiceId = $params['invoiceid'];
-    $invoiceDuedate = $params['dueDate'];
+    $invoiceDuedate = ($params['dueDate']) ? $params['dueDate'] : date('Y-m-d');
     $description = $params["description"];
     $amount = round((double)$params['amount'], 2);
     $credit = round((double)$params['credit'], 2);
@@ -170,6 +170,7 @@ function widepay_link($params)
     $city = $params['clientdetails']['city'];
     $state = $params['clientdetails']['state'];
     $postcode = $params['clientdetails']['postcode'];
+    $phone = $params['clientdetails']['phonenumber'];
 
     // Parâmetros do Sistema
     $systemUrl = $params['systemurl'];
@@ -305,6 +306,7 @@ function widepay_link($params)
             'pessoa' => $widepayPessoa,
             'cpf' => $widepayCpf,
             'cnpj' => $widepayCnpj,
+            'telefone' => $phone,
 
             'endereco' => array(
                 'rua' => $address1,
@@ -331,7 +333,7 @@ function widepay_link($params)
             if($dados->validacao){
                 logTransaction('Wide Pay', $dados->validacao, 'Erro Wide Pay');
                 foreach ($dados->validacao as $item){
-                    $validacao .= '- ' . $item['erro'] . '<br>';
+                    $validacao .=  strtoupper($item['id']) . ' - ' . $item['erro'] . '<br>';
                 }
             }
             if($dados->erro)
@@ -347,10 +349,11 @@ function widepay_link($params)
         $link = 'https://widepay.com/' . $widepayWalletNumber . '-' . $widepayInvoice->idtransaction;
     }
     //Exibindo link para pagamento
-    echo "<script>window.location = '$link';</script>";
-    return "<a class='btn btn-success' href='$link'>Pagar Agora com Wide Pay</a>";
-
-
+    echo "<script>window.open(
+                '$link',
+                '_blank'
+            );</script>";
+    return "<a class='btn btn-success' target='_blank' href='$link'>Pagar Agora com Wide Pay</a>";
 }
 
 /**
