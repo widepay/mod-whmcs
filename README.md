@@ -1,7 +1,7 @@
 #  Módulo WHMCS para Wide Pay
 Módulo desenvolvido para integração entre o WHMCS e Wide Pay. Com o módulo é possível gerar boletos para pagamento e liquidação automática pelo Wide Pay após o recebimento.
 
-* **Versão atual:** 1.3
+* **Versão atual:** 1.4
 * **Versão WHMCS compatível:** Mínima 6 [(Clique aqui para versões anteriores)](https://github.com/widepay/mod-whmcs-5)
 * **Acesso Wide Pay**: [Abrir Link](https://www.widepay.com/acessar)
 * **API Wide Pay**: [Abrir Link](https://widepay.github.io/api/index.html)
