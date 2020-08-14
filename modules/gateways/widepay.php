@@ -4,6 +4,7 @@
 /**
  * Dependencias
  */
+
 use WHMCS\Database\Capsule;
 
 require_once('widepay/WidePay.php');
@@ -36,13 +37,13 @@ function widepay_config()
     $widepayCustomFields = widepay_getCustomFields();
     $widepayCustomFieldsHelp = '';
 
-    if(count($widepayCustomFields) > 0){
+    if (count($widepayCustomFields) > 0) {
         $widepayCustomFieldsHelp .= 'Criamos uma lista com os campos personalizados disponíveis em seu sistema, preencha o campo com o ID referente ao CPF e CNPJ do sistema:<br><ul>';
-        foreach ($widepayCustomFields as $widepayCustomField){
-            $widepayCustomFieldsHelp .= '<li>ID do campo: <strong>'.$widepayCustomField->id . '</strong> - ' .$widepayCustomField->fieldname .'</li>';
+        foreach ($widepayCustomFields as $widepayCustomField) {
+            $widepayCustomFieldsHelp .= '<li>ID do campo: <strong>' . $widepayCustomField->id . '</strong> - ' . $widepayCustomField->fieldname . '</li>';
         }
         $widepayCustomFieldsHelp .= '</ul>';
-    }else{
+    } else {
         $widepayCustomFieldsHelp .= '<strong>Opa. Parece que não há campos personalizados em seu sistema. Saiba como configurar <a href="https://github.com/widepay/mod-whmcs#configuração-do-campo-personalizado-cpfcnpj" target="_blank">clicando aqui</a>.</strong>';
     }
 
@@ -122,7 +123,7 @@ function widepay_config()
             'FriendlyName' => 'Campo referente ao CPF e CNPJ',
             'Type' => 'text',
             'Size' => '40',
-            'Description' => 'Reservado para campo personalizado do sistema WHMCS referente ao CPF e CNPJ.<br>'. $widepayCustomFieldsHelp,
+            'Description' => 'Reservado para campo personalizado do sistema WHMCS referente ao CPF e CNPJ.<br>' . $widepayCustomFieldsHelp,
         ),
 
         // Configuração do campo 'Login Admin WHMCS'
@@ -145,8 +146,8 @@ function widepay_link($params)
     $widepayTax = $params['tax'];
     $widepayTaxType = (int)$params['taxType'];
     $widepayAllowWidePayEmail = $params['allowWidePayEmail'];
-    $widepayFine = (double) $params['fine'];
-    $widepayInterest = (double) $params['interest'];
+    $widepayFine = (double)$params['fine'];
+    $widepayInterest = (double)$params['interest'];
     $widepayCpfCnpjFieldId = $params['cpfCnpj'];
     $widepayCpfCnpj = ''; //Será populado mais abaixo.
     $widepayCpf = ''; //Será populado mais abaixo.
@@ -262,7 +263,6 @@ function widepay_link($params)
     }
 
 
-
     //+++++++++++++++++++++++++++++[Configuração Opção de envio de email Wide Pay ]+++++++++++++++++++++++++++++++++
 
 
@@ -274,13 +274,13 @@ function widepay_link($params)
 
     //+++++++++++++++++++++++++++++[Configuração Opção de CPF e CNPJ para Wide Pay ]+++++++++++++++++++++++++++++++++
 
-    $widepayCpfCnpj = widepay_getCpfCnpj($userid,$widepayCpfCnpjFieldId);
+    $widepayCpfCnpj = widepay_getCpfCnpj($userid, $widepayCpfCnpjFieldId);
 
     if (!is_null($widepayCpfCnpj)) {
-        if(strlen($widepayCpfCnpj) > 11){
+        if (strlen($widepayCpfCnpj) > 11) {
             $widepayCnpj = $widepayCpfCnpj;
             $widepayPessoa = 'Jurídica';
-        }else{
+        } else {
             $widepayCpf = $widepayCpfCnpj;
         }
     }
@@ -330,17 +330,17 @@ function widepay_link($params)
         //Verificando sucesso no retorno
         if (!$dados->sucesso) {
             $validacao = '';
-            if($dados->validacao){
+            if ($dados->validacao) {
                 logTransaction('Wide Pay', $dados->validacao, 'Erro Wide Pay');
-                foreach ($dados->validacao as $item){
-                    $validacao .=  strtoupper($item['id']) . ' - ' . $item['erro'] . '<br>';
+                foreach ($dados->validacao as $item) {
+                    $validacao .= strtoupper($item['id']) . ' - ' . $item['erro'] . '<br>';
                 }
             }
-            if($dados->erro)
+            if ($dados->erro)
                 logTransaction('Wide Pay', $dados->erro, 'Erro Wide Pay');
 
 
-            return '<div class="alert alert-danger" role="alert">Wide Pay: ' . $dados->erro . '<br>'. $validacao .'</div>';
+            return '<div class="alert alert-danger" role="alert">Wide Pay: ' . $dados->erro . '<br>' . $validacao . '</div>';
         }
         //Caso sucesso, será enviada ao banco de dados
         widepay_sendInvoice($invoiceId, $widepayTotal, $widepayTaxType, $widepayFine, $widepayInterest, $invoiceDuedate, $dados->id);
@@ -348,12 +348,43 @@ function widepay_link($params)
     } else {
         $link = 'https://widepay.com/' . $widepayWalletNumber . '-' . $widepayInvoice->idtransaction;
     }
+
+    widepay_send_email_when_create_payment($invoiceId, $firstname, $link, $params['adminWHMCSLogin']);
+
+
     //Exibindo link para pagamento
     echo "<script>window.open(
                 '$link',
                 '_blank'
             );</script>";
     return "<a class='btn btn-success' target='_blank' href='$link'>Pagar Agora com Wide Pay</a>";
+}
+
+function widepay_send_email_when_create_payment($order_id, $firstname, $link, $admin_user)
+{
+    $message = '';
+    $message .= 'Olá {nome_cliente}, é com grande alegria que agradecemos por depositar sua confiança em nosso trabalho e profissionalismo.<br>';
+    $message .= 'Para realizar o pagamento de sua compra clique no link abaixo <br><br>';
+    $message .= '<a target="_blank" href="{link_pagamento}">Clique aqui para abrir página de pagamento</a>. <br>';
+    $message .= '<a target="_blank" href="{link_pagamento_pdf}">Clique aqui para abrir pdf do Boleto (Caso disponível)</a>. <br><br>';
+    $message .= 'Caso já tenha sido pago, desconsidere este e-mail.<br><br>';
+
+    $input = ['{id_fatura}', '{nome_cliente}', '{link_pagamento}', '{link_pagamento_pdf}'];
+    $output = [$order_id, $firstname, $link, $link . '.pdf'];
+    $subject = 'Recebemos seu pedido!';
+    $message = str_replace($input, $output, $message);
+
+
+    $command = 'SendEmail';
+    $postData = array(
+        'messagename' => 'Nova fatura emitida',
+        'id' => $order_id,
+        'customtype' => 'invoice',
+        'customsubject' => $subject,
+        'custommessage' => $message,
+    );
+
+    $results = localAPI($command, $postData, $admin_user);
 }
 
 /**
@@ -459,15 +490,15 @@ function widepay_getCustomFields()
     return $widepayCustomFields;
 }
 
-function widepay_getCpfCnpj($custumer,$fieldId)
+function widepay_getCpfCnpj($custumer, $fieldId)
 {
     $widepayCustomField = Capsule::table('tblcustomfieldsvalues')
-        ->where('fieldid',$fieldId)
-        ->where('relid',$custumer)
+        ->where('fieldid', $fieldId)
+        ->where('relid', $custumer)
         ->first();
-    if($widepayCustomField){
+    if ($widepayCustomField) {
         return preg_replace('/\D/', '', $widepayCustomField->value);
-    }else{
+    } else {
         return null;
     }
 }
