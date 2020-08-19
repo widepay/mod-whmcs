@@ -349,7 +349,10 @@ function widepay_link($params)
         $link = 'https://widepay.com/' . $widepayWalletNumber . '-' . $widepayInvoice->idtransaction;
     }
 
-    widepay_send_email_when_create_payment($invoiceId, $firstname, $link, $params['adminWHMCSLogin']);
+    try {
+        widepay_send_email_when_create_payment($invoiceId, $firstname, $link, $params['adminWHMCSLogin']);
+    } catch (\Exception $exception) {
+    }
 
 
     //Exibindo link para pagamento
@@ -378,13 +381,14 @@ function widepay_send_email_when_create_payment($order_id, $firstname, $link, $a
     $command = 'SendEmail';
     $postData = array(
         'messagename' => 'Nova fatura emitida',
-        'id' => $order_id,
-        'customtype' => 'invoice',
+        'id' => '1',
+        'customtype' => 'general',
         'customsubject' => $subject,
         'custommessage' => $message,
     );
-
     $results = localAPI($command, $postData, $admin_user);
+
+
 }
 
 /**

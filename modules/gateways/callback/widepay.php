@@ -43,13 +43,13 @@ if ($widePay->sucesso) {
     }
 
     //Caso a notificação for de baixa ou recebido.
-    if ($widePay->cobranca['status'] == 'Recebido' || $widePay->cobranca['status'] ==  "Baixado"){
+    if ($widePay->cobranca['status'] == 'Recebido' || $widePay->cobranca['status'] ==  "Baixado" || $widePay->cobranca['status'] ==  "Recebido manualmente"){
 
         $addTransactionCommand                  = "addtransaction";
         $addTransactionValues['userid']         = $results['userid'];
         $addTransactionValues['invoiceid']      = $widePay->cobranca['referencia'];
         $addTransactionValues['description']    = 'Notificação valor recebido WidePay';
-        $addTransactionValues['amountin']       = ($widePay->cobranca['status'] ==  "Baixado")? $widePay->cobranca['valor'] : $widePay->cobranca['recebido'] ;
+        $addTransactionValues['amountin']       = ($widePay->cobranca['status'] ==  "Baixado" ||  $widePay->cobranca['status'] ==  "Recebido manualmente")? $widePay->cobranca['valor'] : $widePay->cobranca['recebido'] ;
         $addTransactionValues['fees']           = $widePay->cobranca['tarifa'];
         $addTransactionValues['paymentmethod']  = 'widepay';
         $addTransactionValues['transid']        = $widePay->cobranca['id'];
